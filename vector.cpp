@@ -8,8 +8,8 @@ std::vector<std::vector<int>> generateApples() {
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distribX(0, 24); // szerokość konsoli
-    std::uniform_int_distribution<> distribY(0, 79); // wysokość konsoli
+    std::uniform_int_distribution<> distribX(3, 24); // szerokość konsoli
+    std::uniform_int_distribution<> distribY(2, 79); // wysokość konsoli
     for (int i = 0; i < 10; i++) {
         int jakas = distribX(gen);
         int losowa = distribY(gen);
@@ -31,6 +31,8 @@ void moveCursor(int x, int y) {
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
+
+
 void clearScreen() {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO screen;
@@ -45,9 +47,52 @@ void clearScreen() {
     FillConsoleOutputAttribute(hConsole, screen.wAttributes, lengthTotal, start, &written);
 }
 
+void showStartScreen() {
+    clearScreen();
+    moveCursor(30, 10);
+    std::cout << "             --- PRESS ENTER TO START ---";
+
+    while (true) {
+        if (_kbhit()) {
+            int ch = _getch();
+            if (ch == 13) {  // 13 = Enter
+                break;
+            }
+        }
+        Sleep(10);
+    }
+    clearScreen();
+
+}
+
 void render() {
+
+    for (int m = 0; m < 80; m++) {
+        moveCursor(1 + m, 1);
+        std::cout << "-";
+    }
+    for (int l = 0; l < 80; l++) {
+        moveCursor(1 + l, 25);
+        std::cout << "-";
+    }
+    for (int n = 0; n < 25; n++) {
+        moveCursor(1, 1 + n);
+        std::cout << "|";
+    }
+    for (int n = 0; n < 25; n++) {
+        moveCursor(80, 1 + n);
+        std::cout << "|";
+    }
+
+
+
+
     if (wasmoved) {
         moveCursor(x, y);
+
+
+
+
         for (int i = 0; i < length; i++) {
             
             std::cout << "$\b\b";
@@ -64,6 +109,11 @@ enum Direction { UP, DOWN, LEFT, RIGHT };
 Direction direction = RIGHT;  // domyślnie idzie w prawo
 
 void update() {
+
+
+
+
+
     wasmoved = false;
     if (_kbhit()) {
         int ch = _getch();
@@ -97,18 +147,27 @@ void update() {
     }
     int score = length - 1;
 
-    if (score == 2) {
-        clearScreen();
-        moveCursor(0, 1);
-        std::cout << "You win!" << std::endl;
-        exit(0);
-    }
+
 
     moveCursor(0, 0);
     std::cout << "Score: " << score << "   ";
         
     
+    if (x < 1 || x >= 80 || y < 2 || y >= 25) {
+        clearScreen();
+        moveCursor(0, 0);
+        std::cout << "Game over!" << std::endl;
+        exit(0);
 
+
+    }
+
+    if (score == 10) {
+        clearScreen();
+        moveCursor(0, 1);
+        std::cout << "You win!" << std::endl;
+        exit(0);
+    }
 
     if (wasmoved) {
         clearScreen();
@@ -124,6 +183,8 @@ int main() {
     GetConsoleCursorInfo(out, &cursorInfo);
     cursorInfo.bVisible = FALSE;
     SetConsoleCursorInfo(out, &cursorInfo);
+
+    showStartScreen();
 
     while (true) {
 		

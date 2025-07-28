@@ -33,16 +33,16 @@ void moveCursor(int x, int y) {
 
 void clearScreen() {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    COORD topLeft = { 0, 0 };
     CONSOLE_SCREEN_BUFFER_INFO screen;
     DWORD written;
 
     GetConsoleScreenBufferInfo(hConsole, &screen);
-    DWORD length = screen.dwSize.X * screen.dwSize.Y;
 
-    FillConsoleOutputCharacter(hConsole, ' ', length, topLeft, &written);
-    FillConsoleOutputAttribute(hConsole, screen.wAttributes, length, topLeft, &written);
-    SetConsoleCursorPosition(hConsole, topLeft);
+    COORD start = { 0, 1 };  // <-- od drugiego wiersza
+    DWORD lengthTotal = screen.dwSize.X * (screen.dwSize.Y - 1); // -1 bo pomijamy 1 linię
+
+    FillConsoleOutputCharacter(hConsole, ' ', lengthTotal, start, &written);
+    FillConsoleOutputAttribute(hConsole, screen.wAttributes, lengthTotal, start, &written);
 }
 
 void render() {
@@ -77,7 +77,6 @@ void update() {
             }
         }
     }
-
     // Ruch automatyczny w zadanym kierunku
     switch (direction) {
     case UP: y--; break;
@@ -94,27 +93,43 @@ void update() {
             jablka.erase(jablka.begin() + i);
             length++;
             break;
-        }
-        
+        }      
     }
+    int score = length - 1;
+
+    if (score == 2) {
+        clearScreen();
+        moveCursor(0, 1);
+        std::cout << "You win!" << std::endl;
+        exit(0);
+    }
+
+    moveCursor(0, 0);
+    std::cout << "Score: " << score << "   ";
+        
+    
+
 
     if (wasmoved) {
         clearScreen();
     }
-    //
 }
 
 
 
 int main() {
 
-    while (true) {
+    HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(out, &cursorInfo);
+    cursorInfo.bVisible = FALSE;
+    SetConsoleCursorInfo(out, &cursorInfo);
 
+    while (true) {
+		
         update();
         render();
         Sleep(100);
-
-
     }
 
 }
